@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radar Venta Doble AA</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:sans-serif;background:#f4f4f2;color:#222}
+h1{background:#00437F;color:#fff;padding:14px 16px;font-size:17px}
+h1 span{display:block;font-size:12px;color:#cfe0f2;font-weight:400;margin-top:2px}
+.c{padding:12px}
+.card{background:#fff;border-radius:10px;padding:14px;margin-bottom:12px;border:1px solid #e0e0dc}
+label{font-size:12px;color:#666;font-weight:600;display:block;margin-bottom:5px}
+input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;font-size:15px;margin-bottom:8px;font-family:sans-serif}
+textarea{resize:vertical;min-height:80px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+a.btn{display:block;background:#fff;border:1.5px solid #00437F;color:#00437F;border-radius:8px;padding:11px 6px;font-size:13px;font-weight:600;text-align:center;text-decoration:none}
+a.btn.wide{grid-column:span 2}
+a.maps{color:#FF5B15;font-size:13px;font-weight:600;display:block;margin-top:6px;text-decoration:none}
+#info{background:#f4f4f2;border-radius:8px;padding:10px 12px;margin-top:8px}
+#info b{display:block;font-size:14px;margin-bottom:4px}
+#info small{color:#999;font-size:11px}
+.add-btn{width:100%;background:#FF5B15;color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:600;cursor:pointer}
+.item{background:#f4f4f2;border-radius:8px;padding:9px 11px;margin-bottom:6px;font-size:13px}
+.item b{display:block}
+.item small{color:#777}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:#f4f4f2;border-radius:8px;padding:10px;text-align:center}
+.stat b{display:block;font-size:22px;color:#00437F}
+.stat small{font-size:11px;color:#777}
+#err{color:#a33;font-size:12px;display:none;margin-bottom:6px}
+.form-note{font-size:11px;color:#999;margin-top:6px;text-align:center}
+.radio-group{display:flex;gap:12px;margin-bottom:8px}
+.radio-group label{font-size:14px;color:#222;font-weight:400;display:flex;align-items:center;gap:6px;cursor:pointer}
+.radio-group input[type=radio]{width:auto;margin:0;padding:0}
+
+/* BIENVENIDA */
+#welcome{position:fixed;inset:0;background:#00437F;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;padding:32px}
+#welcome img{width:90px;margin-bottom:24px}
+#welcome .logo-text{font-size:28px;font-weight:900;color:#fff;letter-spacing:1px;margin-bottom:4px}
+#welcome .sub{font-size:14px;color:#cfe0f2;margin-bottom:6px;text-align:center}
+#welcome .sub2{font-size:13px;color:#FF5B15;font-weight:700;margin-bottom:40px;text-align:center}
+#welcome .enter-btn{background:#FF5B15;color:#fff;border:none;border-radius:10px;padding:14px 40px;font-size:16px;font-weight:700;cursor:pointer;width:100%;max-width:280px}
+</style>
+</head>
+<body>
+
+<!-- PANTALLA DE BIENVENIDA -->
+<div id="welcome">
+  <div style="width:80px;height:80px;background:#fff;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:24px">
+    <span style="font-size:36px">🛒</span>
+  </div>
+  <div class="logo-text">NETO</div>
+  <div class="sub">Radar de Prospección</div>
+  <div class="sub">Región Centro</div>
+  <div class="sub2">Venta Doble AA</div>
+  <button class="enter-btn" onclick="document.getElementById('welcome').style.display='none'">Entrar</button>
+</div>
+
+<h1>Radar de Prospección<span>Venta Doble AA · Región Centro</span></h1>
+<div class="c">
+
+<div class="card">
+  <label>Tienda (escribe para buscar)</label>
+  <input type="text" id="q" placeholder="Ej: Dr Jimenez, Azcapo..." oninput="buscar()" autocomplete="off">
+  <select id="sel" size="4" style="height:120px;display:none" onchange="seleccionar()"></select>
+  <div id="info" style="display:none">
+    <b id="tNombre"></b>
+    <a class="maps" id="tLink" href="#" target="_blank" rel="noopener noreferrer">📍 Ver tienda en Google Maps →</a>
+    <small>Los botones buscan negocios a ~500m de esta tienda</small>
+  </div>
+</div>
+
+<div class="card" id="catCard" style="display:none">
+  <label>Buscar negocios cercanos</label>
+  <div class="grid" id="catGrid"></div>
+</div>
+
+<div class="card">
+  <label>Registrar negocio encontrado</label>
+  <input type="text" id="coach" placeholder="Tu nombre (coach)">
+  <input type="text" id="biz" placeholder="Nombre del negocio">
+  <select id="cat">
+    <option>Hotel</option><option>Restaurante</option>
+    <option>Cocina económica</option><option>Tienda/Abarrotes</option>
+    <option>Depósito</option><option>Otro</option>
+  </select>
+  <select id="est">
+    <option>Pendiente de visitar</option>
+    <option>Visitado</option>
+    <option>Visitado con venta Doble AA</option>
+  </select>
+
+  <label>¿Se generó venta?</label>
+  <div class="radio-group">
+    <label><input type="radio" name="venta_gen" id="vg_si" value="Si"> Sí</label>
+    <label><input type="radio" name="venta_gen" id="vg_no" value="NO"> No</label>
+  </div>
+
+  <label>Categoría vendida a mayoreo</label>
+  <input type="text" id="cat_venta" placeholder="Ej: Abarrotes, Limpieza...">
+
+  <label>Venta en pesos</label>
+  <input type="number" id="venta_pesos" placeholder="0.00" min="0" step="0.01">
+
+  <label>Comentarios <span style="font-weight:400;color:#aaa">(opcional)</span></label>
+  <textarea id="comentarios" placeholder="Observaciones, acuerdos, seguimiento..."></textarea>
+
+  <label>Fecha</label>
+  <input type="date" id="fecha">
+
+  <p id="err"></p>
+  <button class="add-btn" onclick="agregar()">+ Registrar negocio</button>
+  <p class="form-note">Al registrar se abrirá Google Forms para confirmar el envío</p>
+</div>
+
+<div class="card" id="listCard" style="display:none">
+  <label>Registros de esta sesión</label>
+  <div id="lista"></div>
+</div>
+
+<div class="card">
+  <label>Resumen</label>
+  <div class="stats">
+    <div class="stat"><b id="sTotal">0</b><small>Registrados</small></div>
+    <div class="stat"><b id="sVenta">0</b><small>Con venta Doble AA</small></div>
+  </div>
+</div>
+
+</div>
+<script>
+var S=[["Neto Argentina 896",19.451967,-99.2013324],["Neto Argentina Antigua 700",19.4552297,-99.2018928],["Neto Mercado Sabino 1590",19.4516754,-99.1595461],["Neto Pensil 2796",19.4481251,-99.1953058],["Neto Laguna de Terminos 202",19.4423452,-99.1741808],["NETO Sabino 2986",19.4513188,-99.1594066],["Neto Rosas Moreno 3898",19.4412829,-99.1605914],["Neto Tlatilco 2",19.4618248,-99.1632308],["Neto Azcapotzalco 923",19.483334,-99.186762],["Neto Rayón 2790",19.481577,-99.185619],["Neto San Pablo Xalpa 2975",19.497782,-99.184404],["NETO Av Hidalgo 2977",19.494523,-99.179091],["Neto Torito 1166",19.4611444,-99.1919278],["Neto - El Toreo 8894",19.4554893,-99.2155902],["Neto Tlatelolco 1566",19.4566812,-99.1453581],["Neto Peluqueros 177",19.4474573,-99.124132],["NETO Ecuador 184",19.442721,-99.13715],["Neto La Merced 401",19.4250677,-99.1230793],["Neto Peña y Peña 605",19.4400985,-99.1237359],["Neto Tenochtitlan Tepito 1090",19.4495363,-99.1287369],["Neto Ferrocarril 2872",19.4337145,-99.121225],["Neto Manuel Doblado 3840",19.4394181,-99.1249416],["Neto - Congreso 4506",19.425369,-99.1202286],["Neto Vidal Alcocer 7233",19.4427153,-99.1234636],["Neto Nueva Atzacoalco 405",19.5009956,-99.0862147],["Neto Francisco Morazan 738",19.4646173,-99.0588664],["Neto SAN FELIPE DE JESUS 2 (1467)",19.4917188,-99.0737223],["Neto Cerro del Cubilete 34",19.4720582,-99.0611932],["Neto Campestre aragon 1614",19.4861814,-99.0777242],["Neto 25 de Julio 2971",19.4947148,-99.0800472],["Neto República 3457",19.4805855,-99.0659332],["Neto Gabriel Hernandez 458",19.50054,-99.0963567],["Neto Zumárraga 755",19.4832005,-99.116607],["Neto Panamericana 921",19.4768756,-99.1450842],["Neto Puerto Tampico 1179",19.4762371,-99.0826206],["Neto Cuchilla la Joya 1310",19.460198,-99.109604],["Neto Industrial 2984",19.4772408,-99.1248152],["Neto Vicente Guerrero 2988",19.4898035,-99.1027639],["Neto Martín Carrera 3799",19.4891247,-99.1056151],["Neto Henry ford 7271",19.4634373,-99.099862],["Neto Sebastian Aparicio 7256",19.4945846,-99.0960913],["Neto Ticoman 3819",19.515846,-99.131793],["Neto Carbajal 878",19.528012,-99.141988],["Neto Indios verdes 152",19.4951028,-99.1187622],["Neto San Juan Ixhuatepec 221",19.5188643,-99.1092884],["Neto la presa 2 363",19.5344855,-99.1200394],["Neto CTM 818",19.5094764,-99.1001376],["Neto la Presa 3841",19.5369608,-99.118706],["Neto Santa Isabel Tola 3897",19.4975374,-99.1155238],["Neto Ezequiel Cuautepec 433",19.5416924,-99.1392229],["Neto - Chalma 3834",19.54493,-99.155898],["Neto - Agustín Lara 0926",19.561017,-99.139785],["Tienda Neto Lerdo de Tejada",19.560657,-99.13374],["Neto El Puerto",19.545233,-99.161507],["Tienda neto Forestal 0354",19.563855,-99.127612],["Neto Chabelita",19.554147,-99.136186],["Neto - Zona Escolar 1618",19.54288,-99.152196],["Neto Gabino Barreda",19.540022,-99.147681],["Neto Tenayo",19.546515,-99.165421],["Neto Dr Jimenez 391",19.4109377,-99.1503927],["Neto La Obrera 400",19.4086602,-99.137645],["Neto Dr Andrade 448",19.4119935,-99.1470789],["Neto Potam 885",19.4109801,-99.1169351],["Neto Tacubaya 1299",19.3992518,-99.1881071],["Neto Sur 115 2980",19.391348,-99.107585],["Neto Apatlaco 3442",19.3816602,-99.1142777],["Neto Jamaica 3830",19.4099115,-99.1240295],["Neto Santiago 3837",19.3909889,-99.1280139],["Neto Beethoven 615",19.46004,-99.1299937],["Neto Troncoso 1378",19.4265492,-99.1109595],["Neto Platino 2797",19.4559676,-99.1218616],["Neto Morelos 3808",19.4396118,-99.1160163],["Neto Canal Del Norte 3839",19.4494696,-99.1177171],["Neto Moctezuma 4487",19.4368792,-99.0959851],["Neto Ceballos 7228",19.429021,-99.1067695],["Neto Marruecos 7293",19.4419532,-99.0964623],["Neto Esterlina",19.4446399,-99.0854634]];
+
+var CATS=[["🏨 Hoteles","hotel"],["🍽️ Restaurantes","restaurante"],["🍲 Cocinas económicas","cocina económica"],["🛒 Abarrotes","abarrotes"],["🍺 Depósitos de cerveza","depósito de cerveza"]];
+var cur=null;
+var data={};
+
+var FORM='https://docs.google.com/forms/d/e/1FAIpQLSf_iT_PESyaWOhkIFJsPKHHb2W4yDqI9_8CqanFhFu9a-rk9g/viewform';
+var ET='entry.67245976';
+var EC='entry.1095319241';
+var EN='entry.2011897132';
+var ETIPO='entry.1723580234';
+var EES='entry.1333921560';
+var EVG='entry.1265870116';
+var ECATV='entry.716574478';
+var EVENP='entry.143519211';
+var ECOM='entry.124475769';
+var EF='entry.1397455870';
+
+// Poner fecha de hoy por defecto
+(function(){
+  var hoy=new Date();
+  var y=hoy.getFullYear();
+  var m=String(hoy.getMonth()+1).padStart(2,'0');
+  var d=String(hoy.getDate()).padStart(2,'0');
+  document.getElementById('fecha').value=y+'-'+m+'-'+d;
+})();
+
+function buscar(){
+  var q=document.getElementById('q').value.trim().toLowerCase();
+  var sel=document.getElementById('sel');
+  sel.innerHTML='';
+  if(q.length<2){sel.style.display='none';return;}
+  var found=S.filter(function(s){return s[0].toLowerCase().indexOf(q)>=0;});
+  if(found.length===0){sel.style.display='none';return;}
+  for(var i=0;i<found.length;i++){
+    var o=document.createElement('option');
+    o.value=S.indexOf(found[i]);
+    o.textContent=found[i][0];
+    sel.appendChild(o);
+  }
+  sel.style.display='block';
+  if(found.length===1){sel.selectedIndex=0;seleccionar();}
+}
+
+function seleccionar(){
+  var sel=document.getElementById('sel');
+  var idx=parseInt(sel.value);
+  cur=S[idx];
+  document.getElementById('q').value=cur[0];
+  sel.style.display='none';
+  document.getElementById('tNombre').textContent=cur[0];
+  document.getElementById('tLink').href='https://maps.google.com/?q='+cur[1]+','+cur[2]+'&z=16';
+  document.getElementById('info').style.display='block';
+  var grid=document.getElementById('catGrid');
+  grid.innerHTML='';
+  for(var i=0;i<CATS.length;i++){
+    var c=CATS[i];
+    var url='https://www.google.com/maps/search/'+encodeURIComponent(c[1])+'/@'+cur[1]+','+cur[2]+',16z';
+    var a=document.createElement('a');
+    a.className='btn'+(i===4?' wide':'');
+    a.href=url;
+    a.target='_blank';
+    a.rel='noopener noreferrer';
+    a.textContent=c[0];
+    grid.appendChild(a);
+  }
+  document.getElementById('catCard').style.display='block';
+  renderizar();
+  actualizarStats();
+}
+
+function agregar(){
+  var err=document.getElementById('err');
+  var biz=document.getElementById('biz').value.trim();
+  var coach=document.getElementById('coach').value.trim();
+  err.style.display='none';
+  if(!cur){err.textContent='Primero selecciona una tienda.';err.style.display='block';return;}
+  if(!biz){err.textContent='Escribe el nombre del negocio.';err.style.display='block';return;}
+  if(!coach){err.textContent='Escribe tu nombre de coach.';err.style.display='block';return;}
+
+  var tipo=document.getElementById('cat').value;
+  var estatus=document.getElementById('est').value;
+  var vgEl=document.querySelector('input[name="venta_gen"]:checked');
+  var vg=vgEl?vgEl.value:'';
+  var catVenta=document.getElementById('cat_venta').value.trim();
+  var ventaPesos=document.getElementById('venta_pesos').value.trim();
+  var comentarios=document.getElementById('comentarios').value.trim();
+  var fecha=document.getElementById('fecha').value;
+
+  // Formatear fecha para el form: dd-mm-yy
+  var fechaForm=fecha;
+  if(fecha){
+    var p=fecha.split('-');
+    fechaForm=p[2]+'-'+p[1]+'-'+p[0].slice(2);
+  }
+
+  var k=cur[0];
+  if(!data[k])data[k]=[];
+  data[k].push({n:biz,c:tipo,e:estatus,ch:coach,vg:vg,cv:catVenta,vp:ventaPesos,com:comentarios,d:fecha});
+
+  var formUrl=FORM+'?usp=pp_url'
+    +'&'+ET+'='+encodeURIComponent(cur[0])
+    +'&'+EC+'='+encodeURIComponent(coach)
+    +'&'+EN+'='+encodeURIComponent(biz)
+    +'&'+ETIPO+'='+encodeURIComponent(tipo)
+    +'&'+EES+'='+encodeURIComponent(estatus)
+    +'&'+EVG+'='+encodeURIComponent(vg)
+    +'&'+ECATV+'='+encodeURIComponent(catVenta)
+    +'&'+EVENP+'='+encodeURIComponent(ventaPesos)
+    +'&'+ECOM+'='+encodeURIComponent(comentarios)
+    +'&'+EF+'='+encodeURIComponent(fechaForm);
+
+  window.open(formUrl,'_blank');
+
+  document.getElementById('biz').value='';
+  document.getElementById('cat_venta').value='';
+  document.getElementById('venta_pesos').value='';
+  document.getElementById('comentarios').value='';
+  if(vgEl)vgEl.checked=false;
+  renderizar();
+  actualizarStats();
+}
+
+function renderizar(){
+  if(!cur)return;
+  var list=data[cur[0]]||[];
+  var cl=document.getElementById('lista');
+  var card=document.getElementById('listCard');
+  cl.innerHTML='';
+  if(list.length===0){card.style.display='none';return;}
+  card.style.display='block';
+  for(var i=0;i<list.length;i++){
+    var item=list[i];
+    var d=document.createElement('div');
+    d.className='item';
+    var extra='';
+    if(item.vp)extra+=' · $'+parseFloat(item.vp).toLocaleString('es-MX');
+    if(item.com)extra+=' · '+item.com;
+    d.innerHTML='<b>'+item.n+'</b><small>'+item.c+' · '+item.e+(item.vg?' · Venta: '+item.vg:'')+extra+' · '+item.ch+' · '+item.d+'</small>';
+    cl.appendChild(d);
+  }
+}
+
+function actualizarStats(){
+  var todos=[];
+  var keys=Object.keys(data);
+  for(var i=0;i<keys.length;i++){
+    for(var j=0;j<data[keys[i]].length;j++){
+      todos.push(data[keys[i]][j]);
+    }
+  }
+  document.getElementById('sTotal').textContent=todos.length;
+  var conVenta=0;
+  for(var i=0;i<todos.length;i++){
+    if(todos[i].e==='Visitado con venta Doble AA')conVenta++;
+  }
+  document.getElementById('sVenta').textContent=conVenta;
+}
+</script>
+</body>
+</html>
